@@ -107,21 +107,48 @@ def point_of_index(mapData, i):
 # ________________________________________________________________________________
 
 
-def informationGain(mapData, point, r):
-    infoGain = 0
-    index = index_of_point(mapData, point)
-    r_region = int(r/mapData.info.resolution)
-    init_index = index-r_region*(mapData.info.width+1)
-    for n in range(0, 2*r_region+1):
-        start = n*mapData.info.width+init_index
-        end = start+2*r_region
-        limit = ((start/mapData.info.width)+2)*mapData.info.width
-        for i in range(start, end+1):
-            if (i >= 0 and i < limit and i < len(mapData.data)):
-                if(mapData.data[i] == -1 and norm(array(point)-point_of_index(mapData, i)) <= r):
-                    infoGain += 1
-    return infoGain*(mapData.info.resolution**2)
+# def informationGain(mapData, point, r):
+#     infoGain = 0
+#     index = index_of_point(mapData, point)
+#     r_region = int(r/mapData.info.resolution)
+#     init_index = index-r_region*(mapData.info.width+1)
+#     for n in range(0, 2*r_region+1):
+#         start = n*mapData.info.width+init_index
+#         end = start+2*r_region
+#         limit = ((start/mapData.info.width)+2)*mapData.info.width
+#         for i in range(start, end+1):
+#             if (i >= 0 and i < limit and i < len(mapData.data)):
+#                 if(mapData.data[i] == -1 and norm(array(point)-point_of_index(mapData, i)) <= r):
+#                     infoGain += 1
+#     return infoGain*(mapData.info.resolution**2)
 # ________________________________________________________________________________
+
+def informationGain(mapData, point, r):
+    """
+    Get the area in square meters of un-explored grids in the sqaure region with side length 2*r around point
+    :param mapData:
+    :param point:
+    :param r: radius in original version, but half side length in this function to ease calculation
+    :return: area of un-explored grids
+    """
+    gain = 0
+    resolution = mapData.info.resolution
+    width = mapData.info.width
+    map_min_x = mapData.info.origin.position.x
+    map_min_y = mapData.info.origin.position.y
+    center_x = int(floor((point[0] - map_min_x) / resolution))
+    center_y = int(floor((point[1] - map_min_y) / resolution))
+
+    r_int = int(r / resolution)
+    for idx_y in range(center_y - r_int, center_y + r_int + 1):
+        for idx_x in range(center_x - r_int, center_x + r_int + 1):
+            idx = idx_y * width + idx_x
+            # skip grids out of map
+            if idx < 0 or idx >= len(mapData.data):
+                continue
+            if mapData.data[idx] == -1:
+                gain += 1
+    return gain * resolution ** 2
 
 
 def discount(mapData, assigned_pt, centroids, infoGain, r):

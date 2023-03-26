@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #--------Include modules---------------
 from copy import copy
@@ -50,7 +50,7 @@ def node():
 	namespace_init_count = rospy.get_param('namespace_init_count',1)
 	delay_after_assignement=rospy.get_param('~delay_after_assignement',0.5)
 	rateHz = rospy.get_param('~rate',100)
-	
+
 	rate = rospy.Rate(rateHz)
 #-------------------------------------------
 	rospy.Subscriber(map_topic, OccupancyGrid, mapCallBack)
@@ -83,6 +83,7 @@ def node():
 		infoGain=[]
 		for ip in range(0,len(centroids)):
 			infoGain.append(informationGain(mapData,[centroids[ip][0],centroids[ip][1]],info_radius))
+			# rospy.loginfo(f"Info gain for centroid {ip} is {informationGain(mapData,[centroids[ip][0],centroids[ip][1]],info_radius)}")
 #-------------------------------------------------------------------------			
 #get number of available/busy robots
 		na=[] #available robots
@@ -116,6 +117,7 @@ def node():
 				id_record.append(ir)
 		
 		if len(na)<1:
+			rospy.logwarn("No available robot right now!")
 			revenue_record=[]
 			centroid_record=[]
 			id_record=[]
@@ -143,7 +145,7 @@ def node():
 		if (len(id_record)>0):
 			winner_id=revenue_record.index(max(revenue_record))
 			robots[id_record[winner_id]].sendGoal(centroid_record[winner_id])
-			rospy.loginfo(namespace+str(namespace_init_count+id_record[winner_id])+"  assigned to  "+str(centroid_record[winner_id]))	
+			rospy.loginfo(namespace+str(namespace_init_count+id_record[winner_id])+"  assigned to  "+str(centroid_record[winner_id]))
 			rospy.sleep(delay_after_assignement)
 #------------------------------------------------------------------------- 
 		rate.sleep()
